@@ -1,12 +1,11 @@
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist';
-
-// Configure pdfjs worker dynamically for Vite
-// @ts-ignore
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import JSZip from 'jszip';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Point to pdf.worker.js (served with standard .js extension for 100% Nginx MIME compatibility)
+const baseUrl = (import.meta as any).env?.BASE_URL || '/';
+const workerPath = baseUrl.endsWith('/') ? `${baseUrl}pdf.worker.js` : `${baseUrl}/pdf.worker.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath;
 
 export interface PdfCompressOptions {
   quality: number; // 0.1 to 1.0 (e.g. 0.5 for medium)
