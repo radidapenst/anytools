@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 min-h-screen selection:bg-blue-900 selection:text-white;
+  }
+}
+
+/* Keep the existing utility-based components on one light navy visual system. */
+.app-theme [class~="bg-slate-900"],
+.app-theme [class~="bg-slate-900/80"],
+.app-theme [class~="bg-slate-900/90"],
+.app-theme [class~="bg-slate-950/40"] {
+  background-color: #ffffff !important;
+}
+
+.app-theme [class~="bg-slate-800"],
+.app-theme [class~="bg-slate-800/40"],
+.app-theme [class~="bg-slate-800/50"],
+.app-theme [class~="bg-slate-800/80"],
+.app-theme [class~="bg-slate-900/30"],
+.app-theme [class~="bg-slate-900/60"],
+.app-theme [class~="bg-slate-750"],
+.app-theme [class~="bg-slate-750/50"],
+.app-theme [class~="bg-slate-750/70"],
+.app-theme [class~="bg-slate-850"] {
+  background-color: #f1f5f9 !important;
+}
+
+.app-theme [class~="bg-teal-500"],
+.app-theme [class~="bg-teal-400"] {
+  background-color: #12345b !important;
+}
+
+.app-theme [class~="bg-teal-500/10"],
+.app-theme [class~="bg-teal-500/15"],
+.app-theme [class~="bg-teal-500/20"] {
+  background-color: #e6eef8 !important;
+}
+
+.app-theme [class~="text-white"],
+.app-theme [class~="text-slate-100"],
+.app-theme [class~="text-slate-200"],
+.app-theme [class~="text-slate-300"] {
+  color: #102a4c !important;
+}
+
+.app-theme [class~="text-slate-400"] {
+  color: #52657d !important;
+}
+
+.app-theme [class~="text-slate-500"] {
+  color: #718096 !important;
+}
+
+.app-theme [class~="text-slate-900"],
+.app-theme [class~="text-slate-950"] {
+  color: #102a4c !important;
+}
+
+.app-theme [class~="text-teal-300"],
+.app-theme [class~="text-teal-400"] {
+  color: #12345b !important;
+}
+
+.app-theme [class~="bg-teal-500"].text-slate-950,
+.app-theme [class~="bg-teal-400"].text-slate-950 {
+  color: #ffffff !important;
+}
+
+.app-theme [class*="border-slate-"] {
+  border-color: #d7e0eb !important;
+}
+
+.app-theme [class*="border-teal-"] {
+  border-color: #9db5d2 !important;
+}
+
+.app-theme [class*="hover\\:bg-slate-"]:hover {
+  background-color: #e6edf5 !important;
+}
+
+.app-theme [class*="hover\\:text-white"]:hover {
+  color: #102a4c !important;
+}
+
+.app-theme [class*="hover\\:text-teal-400"]:hover {
+  color: #1e4f86 !important;
+}
