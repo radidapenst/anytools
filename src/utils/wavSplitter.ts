@@ -181,3 +181,49 @@ export function splitWAV(
   if (onProgress) onProgress({ phase: 'done', percent: 100 });
   return results;
 }
+
+export function trimWAV(
+  buffer: Uint8Array,
+  startSeconds: number,
+  endSeconds: number,
+  originalFilename: string,
+  onProgress?: (progress: SplitProgress) => void
+): SplitResult[] {
+  if (onProgress) onProgress({ phase: 'parsing', percent: 20 });
+  const info = parseWAVHeader(buffer);
+  if (onProgress) onProgress({ phase: 'parsing', percent: 100 });
+
+  if (onProgress) onProgress({ phase: 'splitting', percent: 0 });
+
+  const totalAudioDuration = info.dataSize / info.byteRate;
+  const validStart = Math.max(0, Math.min(startSeconds, totalAudioDuration));
+  const validEnd = Math.max(validStart, Math.min(endSeconds, totalAudioDuration));
+
+  const startByteOffset = info.dataOffset + Math.floor((validStart * info.byteRate) / info.blockAlign) * info.blockAlign;
+  const endByteOffset = info.dataOffset + Math.floor((validEnd * info.byteRate) / info.blockAlign) * info.blockAlign;
+
+  const dataSize = Math.max(0, endByteOffset - startByteOffset);
+  if (dataSize <= 0) {
+    throw new Error('Rentang durasi potongan tidak valid.');
+  }
+
+  const headerBuffer = writeWAVHeader(info, dataSize);
+  const partBuffer = new Uint8Array(headerBuffer.length + dataSize);
+
+  partBuffer.set(headerBuffer, 0);
+  partBuffer.set(buffer.subarray(startByteOffset, endByteOffset), headerBuffer.length);
+
+  const duration = dataSize / info.byteRate;
+  const baseName = originalFilename.substring(0, originalFilename.lastIndexOf('.')) || originalFilename;
+
+  if (onProgress) onProgress({ phase: 'done', percent: 100 });
+
+  return [
+    {
+      filename: `${baseName}_potong_custom.wav`,
+      blob: new Blob([partBuffer], { type: 'audio/wav' }),
+      duration,
+    },
+  ];
+}
+

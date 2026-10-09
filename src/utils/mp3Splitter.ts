@@ -205,3 +205,72 @@ export function splitMP3(
   if (onProgress) onProgress({ phase: 'done', percent: 100 });
   return results;
 }
+
+export function trimMP3(
+  buffer: Uint8Array,
+  startSeconds: number,
+  endSeconds: number,
+  originalFilename: string,
+  onProgress?: (progress: SplitProgress) => void
+): SplitResult[] {
+  if (onProgress) onProgress({ phase: 'parsing', percent: 0 });
+  const { frames, id3Header } = parseMP3Frames(buffer, (p) => {
+    if (onProgress) onProgress({ phase: 'parsing', percent: p });
+  });
+
+  if (frames.length === 0) {
+    throw new Error('Tidak dapat menemukan frame MP3 yang valid. Pastikan file berformat MP3.');
+  }
+
+  if (onProgress) onProgress({ phase: 'splitting', percent: 0 });
+
+  const selectedFrames: MP3Frame[] = [];
+  let currentTime = 0;
+
+  for (const frame of frames) {
+    const frameStart = currentTime;
+    const frameEnd = currentTime + frame.duration;
+    currentTime = frameEnd;
+
+    if (frameEnd > startSeconds && frameStart < endSeconds) {
+      selectedFrames.push(frame);
+    }
+  }
+
+  if (selectedFrames.length === 0) {
+    throw new Error('Tidak ada audio yang ditemukan pada rentang waktu tersebut.');
+  }
+
+  let totalSize = selectedFrames.reduce((sum, f) => sum + f.size, 0);
+  if (id3Header) {
+    totalSize += id3Header.length;
+  }
+
+  const partBuffer = new Uint8Array(totalSize);
+  let targetOffset = 0;
+
+  if (id3Header) {
+    partBuffer.set(id3Header, 0);
+    targetOffset += id3Header.length;
+  }
+
+  for (const f of selectedFrames) {
+    const frameData = buffer.subarray(f.offset, f.offset + f.size);
+    partBuffer.set(frameData, targetOffset);
+    targetOffset += f.size;
+  }
+
+  const actualDuration = selectedFrames.reduce((sum, f) => sum + f.duration, 0);
+  const baseName = originalFilename.substring(0, originalFilename.lastIndexOf('.')) || originalFilename;
+
+  if (onProgress) onProgress({ phase: 'done', percent: 100 });
+
+  return [
+    {
+      filename: `${baseName}_potong_custom.mp3`,
+      blob: new Blob([partBuffer], { type: 'audio/mpeg' }),
+      duration: actualDuration,
+    },
+  ];
+}
+

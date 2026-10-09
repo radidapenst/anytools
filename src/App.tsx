@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Shield, Sliders, Info, Lock, ArrowLeft, Scissors, Music } from 'lucide-react';
-import AudioSplitter from './components/AudioSplitter';
-import AudioCompressor from './components/AudioCompressor';
+import { Shield, Sliders, Info, Lock, ArrowLeft, Music, FileText } from 'lucide-react';
+import PdfTools from './components/PdfTools';
+import AudioTools from './components/AudioTools';
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState<'splitter' | 'compressor' | null>(null);
+  const [activeTool, setActiveTool] = useState<'pdf-tools' | 'audio-tools' | null>(null);
 
   return (
     <div className="app-theme min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -50,47 +50,47 @@ export default function App() {
 
             {/* Active Tools Dashboard Section */}
             <section className="space-y-6 max-w-4xl mx-auto w-full">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Pilih Alat yang Tersedia</h3>
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Pilih Kategori Alat</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Card 1: Audio Splitter */}
+                {/* Card 1: PDF Tools */}
                 <div 
-                  onClick={() => setActiveTool('splitter')}
-                  className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 hover:border-teal-500/50 p-6 rounded-2xl cursor-pointer transition duration-200 group flex flex-col justify-between h-48"
+                  onClick={() => setActiveTool('pdf-tools')}
+                  className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 hover:border-teal-500/50 p-6 rounded-2xl cursor-pointer transition duration-200 group flex flex-col justify-between min-h-[220px]"
                 >
                   <div className="space-y-3">
                     <div className="bg-teal-500/15 text-teal-400 w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition duration-200">
-                      <Scissors className="w-6 h-6" />
+                      <FileText className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-lg text-white group-hover:text-teal-400 transition">Audio Splitter (Lossless)</h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                        Pecah file MP3 & WAV berdurasi panjang menjadi beberapa bagian dalam hitungan detik secara instan.
+                      <h4 className="font-bold text-xl text-white group-hover:text-teal-400 transition">PDF Tools Complete</h4>
+                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Solusi dokumen lengkap: Gabung PDF, Pisah PDF, Kompres PDF, PDF ke Gambar (JPG/PNG), dan Gambar ke PDF.
                       </p>
                     </div>
                   </div>
                   <div className="text-xs text-teal-400 font-semibold flex items-center gap-1 mt-4">
-                    Buka Alat →
+                    Buka Kategori PDF Tools →
                   </div>
                 </div>
 
-                {/* Card 2: Audio Compressor */}
+                {/* Card 2: Audio Tools */}
                 <div 
-                  onClick={() => setActiveTool('compressor')}
-                  className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 hover:border-teal-500/50 p-6 rounded-2xl cursor-pointer transition duration-200 group flex flex-col justify-between h-48"
+                  onClick={() => setActiveTool('audio-tools')}
+                  className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 hover:border-teal-500/50 p-6 rounded-2xl cursor-pointer transition duration-200 group flex flex-col justify-between min-h-[220px]"
                 >
                   <div className="space-y-3">
                     <div className="bg-teal-500/15 text-teal-400 w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition duration-200">
                       <Music className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-lg text-white group-hover:text-teal-400 transition">Audio Compressor & Converter</h4>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                        Kompres ukuran dan konversi format file audio (MP3, WAV, AAC, M4A, OGG, WMA) offline.
+                      <h4 className="font-bold text-xl text-white group-hover:text-teal-400 transition">Audio Tools Complete</h4>
+                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Solusi audio lengkap: Audio Splitter (Lossless MP3 & WAV) dan Audio Compressor & Converter (MP3, WAV, AAC, M4A, OGG).
                       </p>
                     </div>
                   </div>
                   <div className="text-xs text-teal-400 font-semibold flex items-center gap-1 mt-4">
-                    Buka Alat →
+                    Buka Kategori Audio Tools →
                   </div>
                 </div>
               </div>
@@ -110,39 +110,39 @@ export default function App() {
               
               <div className="text-right">
                 <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded">
-                  {activeTool === 'splitter' ? 'Audio Splitter' : 'Audio Compressor'}
+                  {activeTool === 'pdf-tools' ? 'PDF Tools Complete' : 'Audio Tools Complete'}
                 </span>
               </div>
             </div>
 
-            {/* Render Selected Tool */}
-            {activeTool === 'splitter' && (
+            {/* Render Selected Category Tool Suite */}
+            {activeTool === 'pdf-tools' && (
               <div className="space-y-4">
                 <div className="text-center max-w-2xl mx-auto space-y-1">
                   <h3 className="text-2xl font-bold text-white flex items-center justify-center gap-2">
-                    <Scissors className="w-6 h-6 text-teal-400" />
-                    Audio Splitter (Lossless)
+                    <FileText className="w-6 h-6 text-teal-400" />
+                    PDF Suite (Offline & Serverless)
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Pecah file MP3 & WAV berdurasi panjang menjadi beberapa bagian dalam hitungan detik.
+                    Solusi lengkap untuk gabung, pisah, kompres, serta konversi dokumen PDF & gambar 100% di browser.
                   </p>
                 </div>
-                <AudioSplitter />
+                <PdfTools />
               </div>
             )}
 
-            {activeTool === 'compressor' && (
+            {activeTool === 'audio-tools' && (
               <div className="space-y-4">
                 <div className="text-center max-w-2xl mx-auto space-y-1">
                   <h3 className="text-2xl font-bold text-white flex items-center justify-center gap-2">
                     <Music className="w-6 h-6 text-teal-400" />
-                    Audio Compressor & Converter
+                    Audio Suite (Offline & Serverless)
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Kompres dan konversi format file audio serta atur sample rate dan bitrate secara offline.
+                    Solusi lengkap untuk memotong (splitter), mengompres, dan mengonversi file audio offline.
                   </p>
                 </div>
-                <AudioCompressor />
+                <AudioTools />
               </div>
             )}
           </div>
@@ -163,20 +163,20 @@ export default function App() {
           <div className="bg-slate-850 p-5 rounded-xl border border-slate-800 space-y-2">
             <div className="text-teal-400 font-bold flex items-center gap-2">
               <Sliders className="w-4 h-4" />
-              Kecepatan Maksimal (Lossless)
+              Kecepatan Maksimal
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Alih-alih melakukan decode ulang audio yang memakan waktu dan RAM besar, kami membelah frame file audio Anda secara langsung (binary slicing). Hasilnya instan tanpa mengurangi kualitas suara sedikit pun.
+              Pemrosesan dilakukan langsung di RAM lokal perangkat Anda melalui WebAssembly dan JS Engine modern tanpa perlu antre atau upload file besar ke server.
             </p>
           </div>
 
           <div className="bg-slate-850 p-5 rounded-xl border border-slate-800 space-y-2">
             <div className="text-teal-400 font-bold flex items-center gap-2">
               <Info className="w-4 h-4" />
-              Mendukung File Besar
+              Privasi 100% Terjamin
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Sangat cocok untuk rekaman rapat, podcast, kuliah, atau audio book berdurasi berjam-jam (misalnya 120 menit) tanpa batas ukuran file dan bebas crash.
+              Dokumen PDF rahasia, laporan keuangan, audio rapat, atau sertifikat pribadi Anda tidak pernah meninggalkan komputer/perangkat Anda.
             </p>
           </div>
         </section>
@@ -184,12 +184,12 @@ export default function App() {
         {/* Other Tools / Coming Soon Section */}
         {activeTool === null && (
           <section className="max-w-4xl mx-auto space-y-4 w-full">
-            <h3 className="text-base font-bold text-slate-400 uppercase tracking-wider">Alat Lainnya (Akan Datang)</h3>
+            <h3 className="text-base font-bold text-slate-400 uppercase tracking-wider">Kategori Alat Lainnya (Akan Datang)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { title: 'Video Compressor', desc: 'Kompres video MP4 secara lokal' },
-                { title: 'PDF Tools', desc: 'Gabung, pisah, atau proteksi file PDF' },
-                { title: 'Image Converter', desc: 'Ubah format gambar PNG, JPG, WebP offline' },
+                { title: 'Video Tools Suite', desc: 'Kompres & konversi video MP4 secara lokal' },
+                { title: 'Image Tools Suite', desc: 'Ubah ukuran, crop, & konversi gambar offline' },
+                { title: 'Developer & Data Suite', desc: 'Format JSON, CSV, & konversi data instan' },
               ].map((tool, idx) => (
                 <div key={idx} className="bg-slate-900 border border-slate-800 p-4 rounded-xl opacity-60 hover:opacity-80 transition duration-150 relative overflow-hidden group">
                   <span className="absolute top-2 right-2 text-[9px] font-semibold text-slate-500 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">

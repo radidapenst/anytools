@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, FileAudio, Settings, Play, Pause, Download, Archive, RefreshCw, ShieldAlert, Sparkles } from 'lucide-react';
-import { splitMP3, SplitResult, SplitProgress } from '../utils/mp3Splitter';
-import { splitWAV } from '../utils/wavSplitter';
+import { splitMP3, trimMP3, SplitResult, SplitProgress } from '../utils/mp3Splitter';
+import { splitWAV, trimWAV } from '../utils/wavSplitter';
 import JSZip from 'jszip';
 
 export default function AudioSplitter() {
@@ -9,9 +9,20 @@ export default function AudioSplitter() {
   const [duration, setDuration] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<SplitProgress | null>(null);
-  const [splitMode, setSplitMode] = useState<'duration' | 'parts'>('duration');
+  const [splitMode, setSplitMode] = useState<'duration' | 'parts' | 'custom'>('duration');
   const [splitDuration, setSplitDuration] = useState<{ minutes: number; seconds: number }>({ minutes: 30, seconds: 0 });
   const [splitParts, setSplitParts] = useState<number>(4);
+  const [customRange, setCustomRange] = useState<{
+    startMinutes: number;
+    startSeconds: number;
+    endMinutes: number;
+    endSeconds: number;
+  }>({
+    startMinutes: 0,
+    startSeconds: 0,
+    endMinutes: 1,
+    endSeconds: 0,
+  });
   const [results, setResults] = useState<SplitResult[]>([]);
   const [zipProgress, setZipProgress] = useState<boolean>(false);
   
@@ -69,6 +80,15 @@ export default function AudioSplitter() {
     const audio = new Audio(objectUrl);
     audio.addEventListener('loadedmetadata', () => {
       setDuration(audio.duration);
+      const totalSecs = Math.floor(audio.duration);
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      setCustomRange({
+        startMinutes: 0,
+        startSeconds: 0,
+        endMinutes: mins,
+        endSeconds: secs,
+      });
       URL.revokeObjectURL(objectUrl);
     });
     audio.addEventListener('error', () => {
@@ -97,22 +117,6 @@ export default function AudioSplitter() {
     setProgress({ phase: 'parsing', percent: 0 });
 
     try {
-      // Calculate target split duration in seconds
-      let targetSeconds = 0;
-      if (splitMode === 'duration') {
-        targetSeconds = splitDuration.minutes * 60 + splitDuration.seconds;
-      } else {
-        if (!duration) {
-          throw new Error('Gagal mendapatkan total durasi file audio untuk pemisahan jumlah bagian.');
-        }
-        targetSeconds = duration / splitParts;
-      }
-
-      if (targetSeconds <= 0) {
-        throw new Error('Durasi pemisahan harus lebih dari 0 detik.');
-      }
-
-      // Read file into memory as ArrayBuffer
       const reader = new FileReader();
       
       reader.onload = async () => {
@@ -121,14 +125,48 @@ export default function AudioSplitter() {
           const fileType = file.name.split('.').pop()?.toLowerCase();
           
           let splitResults: SplitResult[] = [];
-          if (fileType === 'mp3') {
-            splitResults = splitMP3(buffer, targetSeconds, file.name, (prog) => {
-              setProgress(prog);
-            });
-          } else if (fileType === 'wav') {
-            splitResults = splitWAV(buffer, targetSeconds, file.name, (prog) => {
-              setProgress(prog);
-            });
+          
+          if (splitMode === 'custom') {
+            const startSec = customRange.startMinutes * 60 + customRange.startSeconds;
+            const endSec = customRange.endMinutes * 60 + customRange.endSeconds;
+
+            if (startSec >= endSec) {
+              throw new Error('Waktu mulai harus lebih kecil dari waktu selesai.');
+            }
+
+            if (fileType === 'mp3') {
+              splitResults = trimMP3(buffer, startSec, endSec, file.name, (prog) => {
+                setProgress(prog);
+              });
+            } else if (fileType === 'wav') {
+              splitResults = trimWAV(buffer, startSec, endSec, file.name, (prog) => {
+                setProgress(prog);
+              });
+            }
+          } else {
+            let targetSeconds = 0;
+            if (splitMode === 'duration') {
+              targetSeconds = splitDuration.minutes * 60 + splitDuration.seconds;
+            } else {
+              if (!duration) {
+                throw new Error('Gagal mendapatkan total durasi file audio untuk pemisahan jumlah bagian.');
+              }
+              targetSeconds = duration / splitParts;
+            }
+
+            if (targetSeconds <= 0) {
+              throw new Error('Durasi pemisahan harus lebih dari 0 detik.');
+            }
+
+            if (fileType === 'mp3') {
+              splitResults = splitMP3(buffer, targetSeconds, file.name, (prog) => {
+                setProgress(prog);
+              });
+            } else if (fileType === 'wav') {
+              splitResults = splitWAV(buffer, targetSeconds, file.name, (prog) => {
+                setProgress(prog);
+              });
+            }
           }
 
           setResults(splitResults);
@@ -297,10 +335,10 @@ export default function AudioSplitter() {
                     Pengaturan Pemecahan
                   </h3>
 
-                  <div className="flex gap-2 p-1 bg-slate-800 rounded-lg border border-slate-750 mb-4">
+                  <div className="grid grid-cols-3 gap-1 p-1 bg-slate-800 rounded-lg border border-slate-750 mb-4">
                     <button
                       onClick={() => setSplitMode('duration')}
-                      className={`flex-1 py-2 text-sm font-semibold rounded-md transition ${
+                      className={`py-2 text-xs font-semibold rounded-md transition ${
                         splitMode === 'duration'
                           ? 'bg-teal-500 text-slate-950 shadow'
                           : 'text-slate-400 hover:text-slate-200'
@@ -310,17 +348,109 @@ export default function AudioSplitter() {
                     </button>
                     <button
                       onClick={() => setSplitMode('parts')}
-                      className={`flex-1 py-2 text-sm font-semibold rounded-md transition ${
+                      className={`py-2 text-xs font-semibold rounded-md transition ${
                         splitMode === 'parts'
                           ? 'bg-teal-500 text-slate-950 shadow'
                           : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      Bagi Rata (Jumlah File)
+                      Bagi Rata
+                    </button>
+                    <button
+                      onClick={() => setSplitMode('custom')}
+                      className={`py-2 text-xs font-semibold rounded-md transition ${
+                        splitMode === 'custom'
+                          ? 'bg-teal-500 text-slate-950 shadow'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Potong Custom
                     </button>
                   </div>
 
-                  {splitMode === 'duration' ? (
+                  {splitMode === 'custom' ? (
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-300">Waktu Mulai (Start):</label>
+                        <div className="flex gap-2 items-center">
+                          <div className="flex-1 flex gap-2 items-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              className="bg-transparent text-right w-full text-slate-200 outline-none"
+                              value={customRange.startMinutes}
+                              onChange={(e) =>
+                                setCustomRange({ ...customRange, startMinutes: Math.max(0, parseInt(e.target.value) || 0) })
+                              }
+                            />
+                            <span className="text-xs text-slate-400">menit</span>
+                          </div>
+                          <div className="flex-1 flex gap-2 items-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="59"
+                              className="bg-transparent text-right w-full text-slate-200 outline-none"
+                              value={customRange.startSeconds}
+                              onChange={(e) =>
+                                setCustomRange({ ...customRange, startSeconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)) })
+                              }
+                            />
+                            <span className="text-xs text-slate-400">detik</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-semibold text-slate-300">Waktu Selesai (End):</label>
+                          {duration !== null && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const totalSecs = Math.floor(duration);
+                                setCustomRange((prev) => ({
+                                  ...prev,
+                                  endMinutes: Math.floor(totalSecs / 60),
+                                  endSeconds: totalSecs % 60,
+                                }));
+                              }}
+                              className="text-[10px] text-teal-400 hover:underline"
+                            >
+                              Akhir Audio ({formatTime(duration)})
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <div className="flex-1 flex gap-2 items-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              className="bg-transparent text-right w-full text-slate-200 outline-none"
+                              value={customRange.endMinutes}
+                              onChange={(e) =>
+                                setCustomRange({ ...customRange, endMinutes: Math.max(0, parseInt(e.target.value) || 0) })
+                              }
+                            />
+                            <span className="text-xs text-slate-400">menit</span>
+                          </div>
+                          <div className="flex-1 flex gap-2 items-center bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="59"
+                              className="bg-transparent text-right w-full text-slate-200 outline-none"
+                              value={customRange.endSeconds}
+                              onChange={(e) =>
+                                setCustomRange({ ...customRange, endSeconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)) })
+                              }
+                            />
+                            <span className="text-xs text-slate-400">detik</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : splitMode === 'duration' ? (
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-slate-400">Durasi Tiap Bagian</label>
                       <div className="flex gap-3 items-center">
@@ -392,12 +522,26 @@ export default function AudioSplitter() {
                         <div className="flex justify-between">
                           <span>Estimasi Jumlah File:</span>
                           <span className="font-semibold text-teal-400">
-                            {splitMode === 'duration'
-                              ? Math.ceil(duration / (splitDuration.minutes * 60 + splitDuration.seconds))
-                              : splitParts}{' '}
-                            file
+                            {splitMode === 'custom'
+                              ? '1 file (Potongan Custom)'
+                              : splitMode === 'duration'
+                              ? Math.ceil(duration / (splitDuration.minutes * 60 + splitDuration.seconds)) + ' file'
+                              : splitParts + ' file'}
                           </span>
                         </div>
+                        {splitMode === 'custom' && (
+                          <div className="flex justify-between text-xs text-teal-300 pt-1 border-t border-slate-700">
+                            <span>Durasi Potongan:</span>
+                            <span className="font-bold">
+                              {formatTime(
+                                Math.max(
+                                  0,
+                                  customRange.endMinutes * 60 + customRange.endSeconds - (customRange.startMinutes * 60 + customRange.startSeconds)
+                                )
+                              )}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-xs text-slate-400 italic">
