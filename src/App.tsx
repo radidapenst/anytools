@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { Shield, Sliders, Info, Lock, ArrowLeft, Music, FileText } from 'lucide-react';
+import { Shield, Sliders, Info, Lock, ArrowLeft, Music, FileText, Film } from 'lucide-react';
 import PdfTools from './components/PdfTools';
 import AudioTools from './components/AudioTools';
+import VideoTools from './components/VideoTools';
+import CookieConsent from './components/CookieConsent';
+import PrivacyModal from './components/PrivacyModal';
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState<'pdf-tools' | 'audio-tools' | null>(null);
+  const [activeTool, setActiveTool] = useState<'pdf-tools' | 'audio-tools' | 'video-tools' | null>(null);
+  const [showCookieSettings, setShowCookieSettings] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   return (
     <div className="app-theme min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -49,9 +54,9 @@ export default function App() {
             </div>
 
             {/* Active Tools Dashboard Section */}
-            <section className="space-y-6 max-w-4xl mx-auto w-full">
+            <section className="space-y-6 max-w-5xl mx-auto w-full">
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Pilih Kategori Alat</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Card 1: PDF Tools */}
                 <div 
                   onClick={() => setActiveTool('pdf-tools')}
@@ -93,6 +98,27 @@ export default function App() {
                     Buka Kategori Audio Tools →
                   </div>
                 </div>
+
+                {/* Card 3: Video Tools */}
+                <div 
+                  onClick={() => setActiveTool('video-tools')}
+                  className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/60 hover:border-teal-500/50 p-6 rounded-2xl cursor-pointer transition duration-200 group flex flex-col justify-between min-h-[220px]"
+                >
+                  <div className="space-y-3">
+                    <div className="bg-teal-500/15 text-teal-400 w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition duration-200">
+                      <Film className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xl text-white group-hover:text-teal-400 transition">Video Tools Suite</h4>
+                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Solusi video lengkap: Kompres & Konversi MP4/WebM, Potong/Trim Durasi, Video ke GIF Animasi, dan Ekstrak Audio offline.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-teal-400 font-semibold flex items-center gap-1 mt-4">
+                    Buka Kategori Video Tools →
+                  </div>
+                </div>
               </div>
             </section>
           </>
@@ -110,7 +136,11 @@ export default function App() {
               
               <div className="text-right">
                 <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded">
-                  {activeTool === 'pdf-tools' ? 'PDF Tools Complete' : 'Audio Tools Complete'}
+                  {activeTool === 'pdf-tools' 
+                    ? 'PDF Tools Complete' 
+                    : activeTool === 'audio-tools' 
+                    ? 'Audio Tools Complete' 
+                    : 'Video Tools Suite'}
                 </span>
               </div>
             </div>
@@ -143,6 +173,21 @@ export default function App() {
                   </p>
                 </div>
                 <AudioTools />
+              </div>
+            )}
+
+            {activeTool === 'video-tools' && (
+              <div className="space-y-4">
+                <div className="text-center max-w-2xl mx-auto space-y-1">
+                  <h3 className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                    <Film className="w-6 h-6 text-teal-400" />
+                    Video Suite (Offline & Serverless)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Solusi lengkap untuk kompresi, potong durasi, animasi GIF, serta ekstrak audio video 100% di browser.
+                  </p>
+                </div>
+                <VideoTools />
               </div>
             )}
           </div>
@@ -187,9 +232,9 @@ export default function App() {
             <h3 className="text-base font-bold text-slate-400 uppercase tracking-wider">Kategori Alat Lainnya (Akan Datang)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { title: 'Video Tools Suite', desc: 'Kompres & konversi video MP4 secara lokal' },
                 { title: 'Image Tools Suite', desc: 'Ubah ukuran, crop, & konversi gambar offline' },
                 { title: 'Developer & Data Suite', desc: 'Format JSON, CSV, & konversi data instan' },
+                { title: 'Document & OCR Suite', desc: 'Ekstrak teks gambar (OCR) & manipulasi teks offline' },
               ].map((tool, idx) => (
                 <div key={idx} className="bg-slate-900 border border-slate-800 p-4 rounded-xl opacity-60 hover:opacity-80 transition duration-150 relative overflow-hidden group">
                   <span className="absolute top-2 right-2 text-[9px] font-semibold text-slate-500 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">
@@ -208,13 +253,36 @@ export default function App() {
       <footer className="border-t border-slate-800 py-6 mt-12 bg-slate-950/40 text-center text-xs text-slate-500">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 AnyTools. Berjalan 100% lokal di browser Anda.</p>
-          <div className="flex gap-4">
-            <span className="hover:text-slate-400 cursor-pointer">Kebijakan Privasi</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowPrivacyModal(true)}
+              className="hover:text-slate-300 transition cursor-pointer text-xs"
+            >
+              Kebijakan Privasi
+            </button>
             <span>•</span>
-            <span className="hover:text-slate-400 cursor-pointer">Tentang</span>
+            <button
+              onClick={() => setShowCookieSettings(true)}
+              className="hover:text-teal-400 transition cursor-pointer text-xs text-slate-400"
+            >
+              Pengaturan Cookie
+            </button>
           </div>
         </div>
       </footer>
+
+      {/* GDPR Privacy Modal */}
+      <PrivacyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        onOpenCookieSettings={() => setShowCookieSettings(true)}
+      />
+
+      {/* GDPR Cookie Consent Banner & Manager */}
+      <CookieConsent
+        forceOpen={showCookieSettings}
+        onCloseModal={() => setShowCookieSettings(false)}
+      />
     </div>
   );
 }

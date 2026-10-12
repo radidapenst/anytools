@@ -1,0 +1,7 @@
+services:
+  anytools:
+    build: .
+    container_name: anytools-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
